@@ -12,6 +12,7 @@ class Settings(BaseSettings):
 
     database_url: str = "sqlite:///./data/app.db"
     qdrant_url: str = "http://localhost:6533"
+    qdrant_api_key: str = ""
 
     cors_allowed_origins: str = "http://localhost:4200"
 
