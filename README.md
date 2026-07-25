@@ -53,7 +53,7 @@ deliberately not that. It demonstrates:
 | Backend | Python + FastAPI | Deliberately Python, to build AI-engineer-relevant skills rather than staying in Angular/TS comfort zone. |
 | Frontend | Angular, standalone components + signals | Existing strength — used to build a real streaming UI, not just forms. |
 | LLM providers | Groq → Cerebras → Gemini, automatic fallback | Three independent free-tier rate-limit buckets behind one `llm_client.py` abstraction; persona code never touches provider specifics. Claude API was evaluated and excluded — no ongoing free tier. |
-| Embeddings | Local `sentence-transformers` (`all-MiniLM-L6-v2`) | Free, unlimited, no API key, no network round-trip per embed. |
+| Embeddings | Gemini `gemini-embedding-001` (hosted) | Free tier, no card. Originally local `sentence-transformers`, but local embeddings pulled in full PyTorch and blew past Render's 512MB free-tier memory cap before serving a single request — switched to a hosted call instead. |
 | Vector DB | Qdrant, self-hosted via Docker | Free, unlimited, no account. |
 | Relational store | SQLite via SQLAlchemy | Zero-signup, simpler than a hosted Mongo/Postgres for a solo project. |
 | Orchestration | Hand-rolled `run_debate()` generator | No LangGraph/CrewAI/AutoGen — a plain bounded loop is easier to explain in an interview and impossible to accidentally run forever. |
@@ -100,7 +100,9 @@ cd backend
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-copy .env.example .env   # fill in GROQ_API_KEY (free, no card: console.groq.com)
+copy .env.example .env
+# fill in GROQ_API_KEY (free, no card: console.groq.com)
+# fill in GEMINI_API_KEY (free, no card: aistudio.google.com) -- required for embeddings, not just LLM fallback
 
 # 3. Seed the concept knowledge base (76 notes)
 python -m app.retrieval.concept_seeding.seed_concepts
