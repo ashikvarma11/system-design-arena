@@ -1,0 +1,45 @@
+.arena {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+
+  .back-link {
+    display: inline-block;
+    margin-bottom: 1rem;
+    color: #607d8b;
+    text-decoration: none;
+
+    &:hover { text-decoration: underline; }
+  }
+
+  h1 {
+    margin-top: 0;
+  }
+
+  .status-line {
+    color: #607d8b;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    &--error { color: #d33; }
+
+    &--live .pulse {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #4a5cff;
+      animation: pulse 1.2s infinite ease-in-out;
+    }
+  }
+
+  app-agreed-plan-card {
+    display: block;
+    margin-top: 1.5rem;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1); }
+}

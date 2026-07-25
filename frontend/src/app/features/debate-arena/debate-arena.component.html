@@ -1,0 +1,36 @@
+<div class="arena">
+  <a class="back-link" routerLink="/">← New debate</a>
+
+  @if (title()) {
+    <h1>{{ title() }}</h1>
+  }
+
+  @if (status() === 'loading') {
+    <p class="status-line">Loading session...</p>
+  }
+
+  @if (status() === 'streaming') {
+    <p class="status-line status-line--live">
+      <span class="pulse"></span>
+      @if (activePersona()) {
+        {{ activePersona() }} is thinking...
+      } @else {
+        Debate in progress...
+      }
+    </p>
+  }
+
+  @if (status() === 'failed' && errorMessage()) {
+    <p class="status-line status-line--error">{{ errorMessage() }}</p>
+  }
+
+  <app-transcript [turns]="turns()" />
+
+  @if (plan()) {
+    <app-agreed-plan-card [plan]="plan()!" [title]="title()" />
+  }
+
+  @if (status() === 'completed') {
+    <app-related-sessions [sessionId]="sessionId" />
+  }
+</div>

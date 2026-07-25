@@ -1,0 +1,19 @@
+<div class="history-detail">
+  <a class="back-link" routerLink="/history">← Back to history</a>
+
+  @if (isLoading()) {
+    <p>Loading...</p>
+  } @else if (errorMessage()) {
+    <p class="error">{{ errorMessage() }}</p>
+  } @else if (session()) {
+    <h1>{{ session()!.title ?? 'Untitled' }}</h1>
+
+    <app-transcript [turns]="session()!.turns" />
+
+    @if (session()!.agreed_plan) {
+      <app-agreed-plan-card [plan]="session()!.agreed_plan!" [title]="session()!.title" />
+    }
+
+    <app-related-sessions [sessionId]="session()!.id" />
+  }
+</div>

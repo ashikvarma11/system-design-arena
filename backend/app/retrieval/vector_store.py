@@ -63,5 +63,22 @@ def upsert_debate_turn(turn_id: str, content: str, payload: dict) -> None:
     )
 
 
+def search_debate_turns(query: str, limit: int = 10, exclude_session_id: str | None = None) -> list[dict]:
+    client = get_qdrant_client()
+    vector = embed_text(query)
+    query_filter = None
+    if exclude_session_id:
+        query_filter = Filter(
+            must_not=[FieldCondition(key="session_id", match=MatchValue(value=exclude_session_id))]
+        )
+    results = client.query_points(
+        collection_name=DEBATE_TURNS_COLLECTION,
+        query=vector,
+        limit=limit,
+        query_filter=query_filter,
+    )
+    return [{"score": p.score, **p.payload} for p in results.points]
+
+
 def new_point_id() -> str:
     return str(uuid.uuid4())

@@ -2,7 +2,13 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from app.persistence.db import get_db
-from app.persistence.schemas import SessionCreateRequest, SessionDetailResponse, SessionListItem, SessionResponse
+from app.persistence.schemas import (
+    RelatedSession,
+    SessionCreateRequest,
+    SessionDetailResponse,
+    SessionListItem,
+    SessionResponse,
+)
 from app.services import session_service
 
 router = APIRouter(prefix="/api/v1/sessions", tags=["sessions"])
@@ -40,3 +46,11 @@ def get_session(session_id: str, db: Session = Depends(get_db)):
     if record is None:
         raise HTTPException(status_code=404, detail="session not found")
     return record
+
+
+@router.get("/{session_id}/related", response_model=list[RelatedSession])
+def get_related_sessions(session_id: str, db: Session = Depends(get_db)):
+    record = session_service.get_session(db, session_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="session not found")
+    return session_service.get_related_sessions(db, session_id)

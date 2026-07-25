@@ -1,0 +1,12 @@
+<div class="turn-bubble" [class]="'turn-bubble--' + turn().persona">
+  <div class="turn-bubble__header">
+    <app-persona-badge [persona]="turn().persona" />
+    <span class="turn-bubble__round">Round {{ turn().round_number }}</span>
+    @if (turn().critiques_turn_id) {
+      <span class="turn-bubble__rebut">
+        ⚔ rebutting {{ rebuttalTargetPersona() ?? 'a prior turn' }}
+      </span>
+    }
+  </div>
+  <p class="turn-bubble__content">{{ turn().content }}</p>
+</div>

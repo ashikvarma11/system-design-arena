@@ -1,0 +1,52 @@
+<div class="plan-card">
+  <div class="plan-card__header">
+    <h2>Agreed Plan</h2>
+    <button type="button" (click)="download()">Download plan.md</button>
+  </div>
+
+  <p class="plan-card__summary">{{ plan().decision_summary }}</p>
+
+  @if (plan().constraints_addressed.length) {
+    <section>
+      <h3>Constraints Addressed</h3>
+      <ul>
+        @for (item of plan().constraints_addressed; track item) {
+          <li>{{ item }}</li>
+        }
+      </ul>
+    </section>
+  }
+
+  @if (plan().performance_considerations.length) {
+    <section>
+      <h3>Performance Considerations</h3>
+      <ul>
+        @for (item of plan().performance_considerations; track item) {
+          <li>{{ item }}</li>
+        }
+      </ul>
+    </section>
+  }
+
+  @if (plan().security_considerations.length) {
+    <section>
+      <h3>Security Considerations</h3>
+      <ul>
+        @for (item of plan().security_considerations; track item) {
+          <li>{{ item }}</li>
+        }
+      </ul>
+    </section>
+  }
+
+  @if (plan().open_risks.length) {
+    <section>
+      <h3>Open Risks</h3>
+      <ul>
+        @for (item of plan().open_risks; track item) {
+          <li>{{ item }}</li>
+        }
+      </ul>
+    </section>
+  }
+</div>

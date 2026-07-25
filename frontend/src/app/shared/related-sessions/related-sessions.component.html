@@ -1,0 +1,18 @@
+@if (!isLoading() && related().length) {
+  <div class="related-sessions">
+    <h3>Related past debates</h3>
+    <ul>
+      @for (item of related(); track item.session_id) {
+        <li>
+          <a [routerLink]="['/history', item.session_id]">{{ item.title ?? 'Untitled session' }}</a>
+          @if (item.matched_persona) {
+            <app-persona-badge [persona]="item.matched_persona" />
+          }
+          @if (item.matched_snippet) {
+            <p class="snippet">{{ item.matched_snippet }}</p>
+          }
+        </li>
+      }
+    </ul>
+  </div>
+}

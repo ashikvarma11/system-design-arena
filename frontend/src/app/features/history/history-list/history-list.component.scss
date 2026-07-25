@@ -1,0 +1,61 @@
+.history-list {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+
+  .back-link {
+    display: inline-block;
+    margin-bottom: 1rem;
+    color: #607d8b;
+    text-decoration: none;
+
+    &:hover { text-decoration: underline; }
+  }
+
+  .error { color: #d33; }
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  li {
+    border: 1px solid #dde3e6;
+    border-radius: 8px;
+    margin-bottom: 0.6rem;
+
+    a {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.85rem 1rem;
+      text-decoration: none;
+      color: inherit;
+
+      &:hover { background: #f7f9fa; }
+    }
+
+    .title { font-weight: 600; }
+
+    .meta {
+      color: #90a4ae;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .status {
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      color: #fff;
+
+      &--completed { background: #0f9d58; }
+      &--debating { background: #4a5cff; }
+      &--brief_created { background: #90a4ae; }
+      &--failed { background: #d33; }
+    }
+  }
+}

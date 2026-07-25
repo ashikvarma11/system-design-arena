@@ -1,0 +1,39 @@
+.turn-bubble {
+  border: 1px solid #dde3e6;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 0.85rem;
+  background: #fff;
+  border-left: 4px solid #ccc;
+
+  &--proposer { border-left-color: #4a5cff; }
+  &--constraints { border-left-color: #b8860b; }
+  &--performance { border-left-color: #0f9d58; }
+  &--security { border-left-color: #d33; }
+  &--critic { border-left-color: #8e24aa; background: #fbf5fc; }
+  &--moderator { border-left-color: #37474f; }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.5rem;
+  }
+
+  &__round {
+    font-size: 0.8rem;
+    color: #78909c;
+  }
+
+  &__rebut {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #8e24aa;
+  }
+
+  &__content {
+    margin: 0;
+    line-height: 1.55;
+    white-space: pre-wrap;
+  }
+}

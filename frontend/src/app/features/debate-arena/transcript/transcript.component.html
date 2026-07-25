@@ -1,0 +1,5 @@
+<div class="transcript">
+  @for (turn of turns(); track turn.id) {
+    <app-turn-bubble [turn]="turn" [rebuttalTargetPersona]="rebuttalTargetPersona(turn)" />
+  }
+</div>

@@ -1,0 +1,43 @@
+<div class="problem-input">
+  <h1>System Design Arena</h1>
+  <p class="subtitle">
+    Describe a system design problem. Six AI personas — Proposer, Constraints, Performance,
+    Security, Critic, and Moderator — will debate it and converge on an agreed plan.
+  </p>
+
+  <textarea
+    [(ngModel)]="text"
+    rows="8"
+    placeholder="e.g. Design a URL shortener that handles 50k writes/sec with sub-100ms read latency..."
+    [disabled]="isSubmitting()"
+  ></textarea>
+
+  <div
+    class="dropzone"
+    [class.dropzone--active]="isDragOver()"
+    (drop)="onDrop($event)"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave()"
+  >
+    @if (selectedFile()) {
+      <span>{{ selectedFile()!.name }}</span>
+      <button type="button" (click)="clearFile()" [disabled]="isSubmitting()">Remove</button>
+    } @else {
+      <span>Drop a .txt, .md, or .pdf file here, or</span>
+      <label class="file-label">
+        browse
+        <input type="file" accept=".txt,.md,.pdf" (change)="onFileSelected($event)" [disabled]="isSubmitting()" />
+      </label>
+    }
+  </div>
+
+  @if (errorMessage()) {
+    <p class="error">{{ errorMessage() }}</p>
+  }
+
+  <button type="button" class="submit-btn" (click)="submit()" [disabled]="isSubmitting()">
+    {{ isSubmitting() ? 'Starting debate...' : 'Start Debate' }}
+  </button>
+
+  <a class="history-link" routerLink="/history">View past debates →</a>
+</div>

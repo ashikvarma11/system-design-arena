@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.ingestion.brief_normalizer import normalize_brief
 from app.ingestion.file_extractors import extract_text
 from app.persistence.models import SessionRecord
+from app.retrieval.vector_store import search_debate_turns
 
 
 def create_session_from_text(db: Session, text: str) -> SessionRecord:
@@ -43,3 +44,41 @@ def get_session(db: Session, session_id: str) -> SessionRecord | None:
 
 def list_sessions(db: Session) -> list[SessionRecord]:
     return db.query(SessionRecord).order_by(SessionRecord.created_at.desc()).all()
+
+
+def get_related_sessions(db: Session, session_id: str, limit: int = 5) -> list[dict]:
+    session = db.get(SessionRecord, session_id)
+    if session is None:
+        return []
+
+    query_text = session.raw_input_text or session.title or ""
+    if not query_text.strip():
+        return []
+
+    hits = search_debate_turns(query_text, limit=limit * 5, exclude_session_id=session_id)
+
+    best_by_session: dict[str, dict] = {}
+    for hit in hits:
+        other_id = hit["session_id"]
+        existing = best_by_session.get(other_id)
+        if existing is None or hit["score"] > existing["score"]:
+            best_by_session[other_id] = hit
+
+    related = sorted(best_by_session.values(), key=lambda h: h["score"], reverse=True)[:limit]
+
+    results = []
+    for hit in related:
+        other = db.get(SessionRecord, hit["session_id"])
+        if other is None:
+            continue
+        results.append(
+            {
+                "session_id": other.id,
+                "title": other.title,
+                "status": other.status,
+                "score": hit["score"],
+                "matched_persona": hit.get("persona"),
+                "matched_snippet": hit.get("content_preview"),
+            }
+        )
+    return results

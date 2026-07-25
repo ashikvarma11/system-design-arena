@@ -68,3 +68,12 @@ class AgreedPlanResponse(AgreedPlan):
 class SessionDetailResponse(SessionResponse):
     turns: list[TurnResponse] = []
     agreed_plan: AgreedPlanResponse | None = None
+
+
+class RelatedSession(BaseModel):
+    session_id: str
+    title: str | None
+    status: str
+    score: float
+    matched_persona: str | None
+    matched_snippet: str | None

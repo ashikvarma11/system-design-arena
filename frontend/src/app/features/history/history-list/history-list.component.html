@@ -1,0 +1,26 @@
+<div class="history-list">
+  <a class="back-link" routerLink="/">← New debate</a>
+  <h1>Debate History</h1>
+
+  @if (isLoading()) {
+    <p>Loading...</p>
+  } @else if (errorMessage()) {
+    <p class="error">{{ errorMessage() }}</p>
+  } @else if (sessions().length === 0) {
+    <p>No debates yet. Start one from the home page.</p>
+  } @else {
+    <ul>
+      @for (session of sessions(); track session.id) {
+        <li>
+          <a [routerLink]="['/history', session.id]">
+            <span class="title">{{ session.title ?? 'Untitled' }}</span>
+            <span class="meta">
+              <span class="status" [class]="'status--' + session.status">{{ session.status }}</span>
+              {{ session.created_at | date: 'medium' }}
+            </span>
+          </a>
+        </li>
+      }
+    </ul>
+  }
+</div>
