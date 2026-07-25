@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from app.persistence.db import get_db
@@ -20,18 +20,22 @@ _ALLOWED_EXTENSIONS = (".txt", ".md", ".pdf")
 def create_session(payload: SessionCreateRequest, db: Session = Depends(get_db)):
     if not payload.text.strip():
         raise HTTPException(status_code=400, detail="text must not be empty")
-    record = session_service.create_session_from_text(db, payload.text)
+    record = session_service.create_session_from_text(db, payload.text, payload.rounds_planned)
     return record
 
 
 @router.post("/upload", response_model=SessionResponse)
-async def upload_session(file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def upload_session(
+    file: UploadFile = File(...),
+    rounds_planned: int = Form(default=3, ge=2, le=5),
+    db: Session = Depends(get_db),
+):
     if not file.filename.lower().endswith(_ALLOWED_EXTENSIONS):
         raise HTTPException(status_code=400, detail=f"unsupported file type, allowed: {_ALLOWED_EXTENSIONS}")
     content = await file.read()
     if not content:
         raise HTTPException(status_code=400, detail="uploaded file is empty")
-    record = session_service.create_session_from_file(db, file.filename, content)
+    record = session_service.create_session_from_file(db, file.filename, content, rounds_planned)
     return record
 
 

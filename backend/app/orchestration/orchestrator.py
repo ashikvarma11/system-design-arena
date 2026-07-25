@@ -1,11 +1,13 @@
 import json
 from collections.abc import Iterator
+from concurrent.futures import ThreadPoolExecutor
 
 from sqlalchemy.orm import Session
 
 from app.core.llm_client import get_llm_client
 from app.orchestration.events import DebateEvent
 from app.orchestration.personas import CRITIC, DIMENSION_AGENTS, MODERATOR, PROPOSER, Persona
+from app.persistence.db import SessionLocal
 from app.persistence.models import AgreedPlanRecord, SessionRecord, TurnRecord
 from app.persistence.schemas import ProblemBrief
 from app.retrieval.vector_store import new_point_id, search_concepts, upsert_debate_turn
@@ -36,15 +38,13 @@ def run_debate(db: Session, session: SessionRecord) -> Iterator[DebateEvent]:
         yield DebateEvent("turn_end", _turn_payload(proposal_turn))
 
         for round_number in range(1, rounds_planned + 1):
-            round_turns: list[TurnRecord] = []
-
             for persona in DIMENSION_AGENTS:
                 yield DebateEvent("turn_start", {"persona": persona.name, "round_number": round_number})
-                turn = _run_turn(
-                    db, session, persona=persona, round_number=round_number,
-                    user_prompt=_dimension_prompt(brief, transcript, proposal_turn),
-                )
-                round_turns.append(turn)
+
+            round_turns = _run_dimension_agents_concurrently(
+                session.id, round_number, _dimension_prompt(brief, transcript, proposal_turn),
+            )
+            for turn in round_turns:
                 transcript.append(turn)
                 yield DebateEvent("turn_end", _turn_payload(turn))
 
@@ -111,6 +111,33 @@ def _run_turn(
         },
     )
     return turn
+
+
+def _run_dimension_agents_concurrently(
+    session_id: str, round_number: int, user_prompt: str,
+) -> list[TurnRecord]:
+    """Runs the three dimension agents (constraints/performance/security) in parallel
+    threads -- they're independent reactions to the same proposal, so there's no reason
+    to serialize LLM-bound I/O. Each thread opens its own DB session since SQLAlchemy
+    Sessions aren't thread-safe; results are returned in DIMENSION_AGENTS order regardless
+    of completion order, so downstream event ordering stays deterministic."""
+
+    def _worker(persona: Persona) -> TurnRecord:
+        thread_db = SessionLocal()
+        try:
+            thread_session = thread_db.get(SessionRecord, session_id)
+            turn = _run_turn(
+                thread_db, thread_session, persona=persona, round_number=round_number,
+                user_prompt=user_prompt,
+            )
+            thread_db.expunge(turn)
+            return turn
+        finally:
+            thread_db.close()
+
+    with ThreadPoolExecutor(max_workers=len(DIMENSION_AGENTS)) as pool:
+        futures = [pool.submit(_worker, persona) for persona in DIMENSION_AGENTS]
+        return [f.result() for f in futures]
 
 
 def _run_critic_turn(

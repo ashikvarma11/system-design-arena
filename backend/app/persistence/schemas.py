@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ProblemBrief(BaseModel):
@@ -11,6 +11,7 @@ class ProblemBrief(BaseModel):
 
 class SessionCreateRequest(BaseModel):
     text: str
+    rounds_planned: int = Field(default=3, ge=2, le=5)
 
 
 class SessionResponse(BaseModel):

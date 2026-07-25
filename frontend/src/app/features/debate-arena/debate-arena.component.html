@@ -21,7 +21,12 @@
   }
 
   @if (status() === 'failed' && errorMessage()) {
-    <p class="status-line status-line--error">{{ errorMessage() }}</p>
+    <div class="error-panel">
+      <p class="status-line status-line--error">{{ errorMessage() }}</p>
+      @if (canRetry()) {
+        <button type="button" class="retry-btn" (click)="retry()">Retry debate</button>
+      }
+    </div>
   }
 
   <app-transcript [turns]="turns()" />

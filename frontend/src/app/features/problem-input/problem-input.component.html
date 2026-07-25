@@ -31,6 +31,19 @@
     }
   </div>
 
+  <div class="rounds-control">
+    <label for="rounds">Debate rounds: {{ roundsPlanned() }}</label>
+    <input
+      id="rounds"
+      type="range"
+      min="2"
+      max="5"
+      step="1"
+      [(ngModel)]="roundsPlanned"
+      [disabled]="isSubmitting()"
+    />
+  </div>
+
   @if (errorMessage()) {
     <p class="error">{{ errorMessage() }}</p>
   }

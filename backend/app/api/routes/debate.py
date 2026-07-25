@@ -24,6 +24,9 @@ def stream_debate(session_id: str):
             detail=f"session is not in a streamable state (status={current_status})",
         )
 
+    if session.status == "failed":
+        session_service.reset_session_for_retry(db, session)
+
     def event_source():
         try:
             yield from debate_service.stream_debate(db, session)

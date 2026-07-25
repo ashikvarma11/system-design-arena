@@ -2,20 +2,24 @@ from sqlalchemy.orm import Session
 
 from app.ingestion.brief_normalizer import normalize_brief
 from app.ingestion.file_extractors import extract_text
-from app.persistence.models import SessionRecord
+from app.persistence.models import AgreedPlanRecord, SessionRecord, TurnRecord
 from app.retrieval.vector_store import search_debate_turns
 
 
-def create_session_from_text(db: Session, text: str) -> SessionRecord:
-    return _create_session(db, text=text, input_type="text", filename=None)
+def create_session_from_text(db: Session, text: str, rounds_planned: int = 3) -> SessionRecord:
+    return _create_session(db, text=text, input_type="text", filename=None, rounds_planned=rounds_planned)
 
 
-def create_session_from_file(db: Session, filename: str, content: bytes) -> SessionRecord:
+def create_session_from_file(
+    db: Session, filename: str, content: bytes, rounds_planned: int = 3
+) -> SessionRecord:
     text = extract_text(filename, content)
-    return _create_session(db, text=text, input_type="file", filename=filename)
+    return _create_session(db, text=text, input_type="file", filename=filename, rounds_planned=rounds_planned)
 
 
-def _create_session(db: Session, *, text: str, input_type: str, filename: str | None) -> SessionRecord:
+def _create_session(
+    db: Session, *, text: str, input_type: str, filename: str | None, rounds_planned: int = 3
+) -> SessionRecord:
     brief = normalize_brief(text)
 
     record = SessionRecord(
@@ -25,6 +29,7 @@ def _create_session(db: Session, *, text: str, input_type: str, filename: str | 
         problem_brief_json=brief.model_dump(),
         status="brief_created",
         title=_derive_title(brief, text),
+        rounds_planned=rounds_planned,
     )
     db.add(record)
     db.commit()
@@ -36,6 +41,17 @@ def _derive_title(brief, text: str) -> str:
     if brief.goals:
         return brief.goals[0][:120]
     return text.strip().splitlines()[0][:120] if text.strip() else "Untitled session"
+
+
+def reset_session_for_retry(db: Session, session: SessionRecord) -> None:
+    """Clears turns and any partial plan from a failed session so a retry
+    starts clean instead of duplicating rows alongside the failed attempt.
+    Does not remove already-embedded turns from Qdrant's debate_turns
+    collection -- harmless leftover data, not surfaced to users."""
+    db.query(TurnRecord).filter(TurnRecord.session_id == session.id).delete()
+    db.query(AgreedPlanRecord).filter(AgreedPlanRecord.session_id == session.id).delete()
+    session.status = "brief_created"
+    db.commit()
 
 
 def get_session(db: Session, session_id: str) -> SessionRecord | None:

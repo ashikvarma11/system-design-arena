@@ -20,6 +20,7 @@ export class ProblemInputComponent {
   isSubmitting = signal(false);
   errorMessage = signal<string | null>(null);
   isDragOver = signal(false);
+  roundsPlanned = signal(3);
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -59,8 +60,8 @@ export class ProblemInputComponent {
     this.errorMessage.set(null);
 
     const request$ = file
-      ? this.sessionService.createFromFile(file)
-      : this.sessionService.createFromText(text);
+      ? this.sessionService.createFromFile(file, this.roundsPlanned())
+      : this.sessionService.createFromText(text, this.roundsPlanned());
 
     request$.subscribe({
       next: (session) => {

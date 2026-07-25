@@ -573,4 +573,214 @@ CONCEPTS = [
         "table in the same DB transaction, then a separate relay process publishes it to the "
         "message broker — avoiding lost or duplicate events from a naive two-system write.",
     },
+
+    # --- constraints (added) ---
+    {
+        "id": "geo-distribution-constraint",
+        "title": "Geographic Distribution as a Constraint",
+        "dimension_hint": "constraints",
+        "tags": ["latency", "compliance"],
+        "text": "Serving a globally distributed user base constrains design on two fronts: "
+        "physics (round-trip latency to a single region degrades UX for distant users, pushing "
+        "toward multi-region deployment) and law (data residency rules like GDPR may require "
+        "EU user data to stay in EU regions). Multi-region adds replication-consistency "
+        "tradeoffs that single-region designs never have to make.",
+    },
+    {
+        "id": "read-write-ratio-constraint",
+        "title": "Read/Write Ratio as a Design Driver",
+        "dimension_hint": "constraints",
+        "tags": ["scale", "fundamentals"],
+        "text": "The read-to-write ratio of a workload should drive early architecture choices: "
+        "read-heavy systems (e.g. 100:1) justify caching layers and read replicas; write-heavy "
+        "systems justify sharding and async write paths. Designing a heavy caching layer for a "
+        "write-heavy workload (or vice versa) is a common constraint-mismatch critique.",
+    },
+    {
+        "id": "multi-tenancy-constraint",
+        "title": "Multi-Tenancy Isolation Constraint",
+        "dimension_hint": "constraints",
+        "tags": ["architecture", "isolation"],
+        "text": "Multi-tenant systems must choose an isolation model: shared database with a "
+        "tenant_id column (cheapest, weakest isolation), schema-per-tenant, or database/cluster "
+        "-per-tenant (strongest isolation, highest operational cost). The choice is constrained "
+        "by tenant count, noisy-neighbor risk tolerance, and any per-tenant compliance "
+        "requirements — not purely a performance decision.",
+    },
+
+    # --- performance (added) ---
+    {
+        "id": "message-delivery-semantics",
+        "title": "Message Delivery Semantics",
+        "dimension_hint": "performance",
+        "tags": ["queue", "consistency"],
+        "text": "Message queues offer at-most-once (may lose messages, never duplicates), "
+        "at-least-once (may duplicate, never loses — the common default, requires idempotent "
+        "consumers), or exactly-once (strongest, usually achieved via dedup + at-least-once, "
+        "adds cost/complexity). A design claiming 'exactly-once' without describing how is a "
+        "red flag worth challenging.",
+    },
+    {
+        "id": "storage-engine-tradeoffs",
+        "title": "Storage Engine Tradeoffs (LSM vs B-Tree)",
+        "dimension_hint": "performance",
+        "tags": ["database", "fundamentals"],
+        "text": "B-tree storage engines (traditional RDBMS) give fast, predictable reads at the "
+        "cost of slower random writes (in-place updates). LSM-tree engines (Cassandra, "
+        "RocksDB) buffer writes in memory and flush sequentially, giving very high write "
+        "throughput at the cost of read amplification and background compaction overhead. "
+        "Workload shape, not familiarity, should drive the choice.",
+    },
+    {
+        "id": "compression-tradeoffs",
+        "title": "Compression Tradeoffs",
+        "dimension_hint": "performance",
+        "tags": ["storage", "network"],
+        "text": "Compressing data in transit and at rest reduces network/storage cost and can "
+        "improve effective throughput on bandwidth-constrained links, but costs CPU on both "
+        "ends and adds latency for small payloads where compression overhead exceeds the "
+        "savings. Favor compression for large payloads and cross-region transfer, skip it for "
+        "tiny hot-path responses.",
+    },
+    {
+        "id": "warm-vs-cold-storage",
+        "title": "Hot, Warm, and Cold Storage Tiers",
+        "dimension_hint": "performance",
+        "tags": ["storage", "cost"],
+        "text": "Data access patterns justify storage tiering: hot tier (SSD/in-memory, "
+        "expensive, low latency) for recent/frequently-accessed data, warm tier for occasional "
+        "access, and cold/archival tier (object storage, cheap, high retrieval latency) for "
+        "rarely-accessed or compliance-retained data. Storing everything in the hot tier is a "
+        "common cost-performance anti-pattern.",
+    },
+    {
+        "id": "geo-replication-latency",
+        "title": "Geo-Replication and Write Latency",
+        "dimension_hint": "performance",
+        "tags": ["distributed-systems", "latency"],
+        "text": "Synchronous multi-region replication (waiting for all regions to acknowledge a "
+        "write) guarantees consistency but adds the round-trip latency of the slowest region to "
+        "every write. Asynchronous replication keeps writes fast but risks data loss on regional "
+        "failover. Systems needing both low write latency and multi-region durability typically "
+        "pick a quorum-based approach (e.g. write to a majority of regions).",
+    },
+
+    # --- security (added) ---
+    {
+        "id": "owasp-ssrf",
+        "title": "Server-Side Request Forgery (OWASP)",
+        "dimension_hint": "security",
+        "tags": ["owasp"],
+        "text": "SSRF occurs when an attacker gets the server to make requests to unintended "
+        "internal destinations (cloud metadata endpoints, internal admin services) by supplying "
+        "a URL that the server fetches on the attacker's behalf. Mitigated by allow-listing "
+        "outbound destinations, blocking requests to internal IP ranges, and not trusting "
+        "user-supplied URLs for server-side fetches.",
+    },
+    {
+        "id": "token-based-auth",
+        "title": "Token-Based Auth: Session vs JWT",
+        "dimension_hint": "security",
+        "tags": ["auth"],
+        "text": "Server-side sessions (opaque token + server-side store) support instant "
+        "revocation but require a shared session store across instances. JWTs are self-contained "
+        "and scale statelessly but can't be revoked before expiry without an extra denylist "
+        "check, which erodes the statelessness benefit. Short expiry + refresh tokens is the "
+        "common middle ground.",
+    },
+    {
+        "id": "webhook-signature-verification",
+        "title": "Webhook Signature Verification",
+        "dimension_hint": "security",
+        "tags": ["auth", "integration"],
+        "text": "An endpoint that accepts inbound webhooks from a third party must verify a "
+        "cryptographic signature (typically HMAC over the payload with a shared secret) on "
+        "every request, not just trust the source IP or a static bearer token — otherwise "
+        "anyone who discovers the URL can forge events.",
+    },
+    {
+        "id": "pii-tokenization",
+        "title": "Tokenization of Sensitive Data",
+        "dimension_hint": "security",
+        "tags": ["privacy", "compliance"],
+        "text": "Tokenization replaces sensitive values (card numbers, SSNs) with a non-sensitive "
+        "reference token, storing the real value only in a tightly-scoped vault. Downstream "
+        "systems operate on tokens and never touch raw sensitive data, shrinking the compliance "
+        "and breach-impact surface compared to encrypting the value everywhere it flows.",
+    },
+    {
+        "id": "dependency-confusion",
+        "title": "Dependency / Namespace Confusion",
+        "dimension_hint": "security",
+        "tags": ["supply-chain"],
+        "text": "Dependency confusion attacks publish a malicious public package with the same "
+        "name as an internal private package; if the package manager resolves the public "
+        "registry first, the malicious version gets pulled into a build. Mitigated by scoped "
+        "package namespaces, explicit registry pinning, and internal-registry-first resolution.",
+    },
+
+    # --- feedback / cross-cutting (added) ---
+    {
+        "id": "deployment-strategies",
+        "title": "Deployment Strategies: Blue-Green vs Canary",
+        "dimension_hint": "feedback",
+        "tags": ["deployment", "resilience"],
+        "text": "Blue-green deployment runs two full environments and switches traffic "
+        "atomically, giving instant rollback but doubling infra cost during the switch. Canary "
+        "deployment shifts a small traffic percentage to the new version first, catching "
+        "regressions with limited blast radius before a full rollout, at the cost of running "
+        "mixed versions simultaneously and needing good metrics to judge canary health.",
+    },
+    {
+        "id": "bulkhead-pattern",
+        "title": "Bulkhead Pattern",
+        "dimension_hint": "feedback",
+        "tags": ["resilience"],
+        "text": "The bulkhead pattern isolates resources (thread pools, connection pools) per "
+        "downstream dependency so that one failing or slow dependency can't exhaust resources "
+        "shared by unrelated calls — named after ship compartments that contain flooding to one "
+        "section rather than sinking the whole vessel.",
+    },
+    {
+        "id": "cost-observability",
+        "title": "Cost as an Observability Signal",
+        "dimension_hint": "feedback",
+        "tags": ["cost", "observability"],
+        "text": "Cloud cost should be monitored like latency or error rate, with per-service or "
+        "per-feature attribution (tagging) and alerts on anomalous spend. A design proposal that "
+        "adds significant infra without a cost estimate or attribution plan is missing a "
+        "feedback loop that matters as much as performance metrics for most teams.",
+    },
+    {
+        "id": "chaos-engineering",
+        "title": "Chaos Engineering",
+        "dimension_hint": "feedback",
+        "tags": ["resilience", "process"],
+        "text": "Chaos engineering deliberately injects failures (killing instances, adding "
+        "network latency, exhausting resources) in a controlled way to verify a system's "
+        "resilience claims hold in practice, rather than trusting them on paper. Especially "
+        "valuable for validating failover and circuit-breaker behavior that rarely triggers "
+        "naturally.",
+    },
+    {
+        "id": "dual-write-problem",
+        "title": "The Dual-Write Problem",
+        "dimension_hint": "feedback",
+        "tags": ["consistency", "messaging"],
+        "text": "Writing to two systems (e.g. a database and a message queue, or two "
+        "databases) in sequence without a shared transaction risks partial failure — the first "
+        "write succeeds, the second fails, leaving the systems inconsistent. Solved via the "
+        "outbox pattern, change-data-capture, or a saga, not by 'just retry the second write' "
+        "which doesn't handle process crashes between the two calls.",
+    },
+    {
+        "id": "define-done-metrics",
+        "title": "Defining Success Metrics Up Front",
+        "dimension_hint": "feedback",
+        "tags": ["process"],
+        "text": "A design proposal should state the metric that will determine whether it "
+        "worked (e.g. p99 latency under 200ms, error rate under 0.1%) before implementation, "
+        "not after. Without a stated target, 'is this design good enough' has no answer and "
+        "review debate has nothing concrete to converge on.",
+    },
 ]

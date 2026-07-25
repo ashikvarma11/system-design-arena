@@ -10,13 +10,14 @@ export class SessionService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiBaseUrl}/sessions`;
 
-  createFromText(text: string): Observable<SessionResponse> {
-    return this.http.post<SessionResponse>(this.baseUrl, { text });
+  createFromText(text: string, roundsPlanned = 3): Observable<SessionResponse> {
+    return this.http.post<SessionResponse>(this.baseUrl, { text, rounds_planned: roundsPlanned });
   }
 
-  createFromFile(file: File): Observable<SessionResponse> {
+  createFromFile(file: File, roundsPlanned = 3): Observable<SessionResponse> {
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('rounds_planned', String(roundsPlanned));
     return this.http.post<SessionResponse>(`${this.baseUrl}/upload`, formData);
   }
 
