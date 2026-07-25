@@ -1,0 +1,11 @@
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6533:6333"
+      - "6534:6334"
+    volumes:
+      - qdrant_storage:/qdrant/storage
+
+volumes:
+  qdrant_storage:

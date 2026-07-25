@@ -1,0 +1,26 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# env
+.env
+*.env.local
+
+# db
+*.sqlite3
+*.db
+
+# node / angular
+node_modules/
+dist/
+.angular/
+
+# qdrant local storage
+qdrant_storage/
+
+# OS
+.DS_Store
+Thumbs.db

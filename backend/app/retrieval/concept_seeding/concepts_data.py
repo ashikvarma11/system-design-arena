@@ -1,0 +1,576 @@
+"""Curated system-design concept KB. Each entry is grounding material the debate
+personas retrieve from before arguing. dimension_hint aligns loosely with the
+persona dimensions (constraints, performance, security, feedback) or "general"."""
+
+CONCEPTS = [
+    # --- constraints ---
+    {
+        "id": "cap-theorem",
+        "title": "CAP Theorem",
+        "dimension_hint": "constraints",
+        "tags": ["distributed-systems", "consistency"],
+        "text": "CAP theorem: a distributed system can provide at most two of Consistency, "
+        "Availability, and Partition tolerance during a network partition. Since partitions "
+        "are unavoidable at scale, real systems choose between CP (reject requests to stay "
+        "consistent) and AP (stay available, accept temporary inconsistency).",
+    },
+    {
+        "id": "pacelc",
+        "title": "PACELC Theorem",
+        "dimension_hint": "constraints",
+        "tags": ["distributed-systems", "latency", "consistency"],
+        "text": "PACELC extends CAP: even without a partition (E), a system must trade off "
+        "Latency versus Consistency. This explains why systems like DynamoDB favor low "
+        "latency with eventual consistency even in the normal case.",
+    },
+    {
+        "id": "consistency-models",
+        "title": "Consistency Models",
+        "dimension_hint": "constraints",
+        "tags": ["consistency"],
+        "text": "Common consistency models, strongest to weakest: linearizability (reads see "
+        "latest write, globally ordered), sequential consistency, causal consistency (respects "
+        "cause-effect order), and eventual consistency (replicas converge given no new writes). "
+        "Stronger consistency costs latency and availability.",
+    },
+    {
+        "id": "sla-slo-sli",
+        "title": "SLA, SLO, and SLI",
+        "dimension_hint": "constraints",
+        "tags": ["reliability"],
+        "text": "SLI (Service Level Indicator) is a measured metric (e.g. p99 latency). SLO "
+        "(Objective) is the internal target for that metric. SLA (Agreement) is the external, "
+        "often contractual, commitment with consequences for missing it. SLOs should be "
+        "stricter than SLAs to leave error-budget margin.",
+    },
+    {
+        "id": "error-budget",
+        "title": "Error Budgets",
+        "dimension_hint": "constraints",
+        "tags": ["reliability"],
+        "text": "An error budget is 1 minus the SLO (e.g. 99.9% SLO leaves a 0.1% budget). "
+        "Teams can spend the budget on risky releases; once exhausted, the team should freeze "
+        "features and focus on reliability. This aligns velocity with reliability constraints.",
+    },
+    {
+        "id": "capacity-planning",
+        "title": "Capacity Planning",
+        "dimension_hint": "constraints",
+        "tags": ["scale"],
+        "text": "Capacity planning estimates required resources from expected QPS, payload size, "
+        "growth rate, and peak-to-average traffic ratio. A common mistake is planning for "
+        "average load instead of peak load plus headroom (commonly 30-50%) for spikes and "
+        "failover.",
+    },
+    {
+        "id": "vertical-vs-horizontal-scaling",
+        "title": "Vertical vs Horizontal Scaling",
+        "dimension_hint": "constraints",
+        "tags": ["scale"],
+        "text": "Vertical scaling (bigger machines) is simple but has a hard ceiling and a single "
+        "point of failure. Horizontal scaling (more machines) has near-unlimited ceiling but "
+        "requires the application to be stateless or use consistent partitioning, and adds "
+        "operational complexity.",
+    },
+    {
+        "id": "build-vs-buy",
+        "title": "Build vs Buy",
+        "dimension_hint": "constraints",
+        "tags": ["tradeoffs", "team"],
+        "text": "Building in-house maximizes control and avoids vendor lock-in but costs "
+        "engineering time and ongoing maintenance. Buying (managed services, SaaS) is faster "
+        "to ship and offloads operational burden but introduces cost-at-scale and dependency "
+        "risk. Small teams should default to buy for non-differentiating capabilities.",
+    },
+    {
+        "id": "team-topology-constraint",
+        "title": "Team Size as a Design Constraint",
+        "dimension_hint": "constraints",
+        "tags": ["team", "conway"],
+        "text": "Conway's Law: system architecture tends to mirror team communication structure. "
+        "A small team should avoid architectures (e.g. many microservices) that require "
+        "coordination overhead exceeding the team's size — a modular monolith is often the "
+        "right constraint-aware choice.",
+    },
+    {
+        "id": "budget-constraint",
+        "title": "Budget as a Hard Constraint",
+        "dimension_hint": "constraints",
+        "tags": ["cost"],
+        "text": "Infrastructure cost constraints should be stated in the brief explicitly (e.g. "
+        "free tier only, or a monthly ceiling). Designs that assume unlimited compute/storage "
+        "budget silently violate this constraint and must be flagged during debate.",
+    },
+    {
+        "id": "compliance-constraint",
+        "title": "Regulatory / Compliance Constraints",
+        "dimension_hint": "constraints",
+        "tags": ["compliance"],
+        "text": "Constraints like GDPR (data residency, right to erasure), HIPAA (PHI handling), "
+        "or PCI-DSS (cardholder data) shape storage location, encryption, retention, and audit "
+        "logging requirements. These are non-negotiable constraints, not performance tradeoffs.",
+    },
+    {
+        "id": "backward-compatibility",
+        "title": "Backward Compatibility Constraint",
+        "dimension_hint": "constraints",
+        "tags": ["api", "migration"],
+        "text": "Any system with existing clients must treat API/schema backward compatibility "
+        "as a constraint: additive-only changes, versioned endpoints, or dual-write migration "
+        "periods. Breaking changes require a deprecation window communicated to consumers.",
+    },
+    {
+        "id": "data-gravity",
+        "title": "Data Gravity",
+        "dimension_hint": "constraints",
+        "tags": ["architecture"],
+        "text": "Data gravity: as datasets grow, it becomes cheaper to bring compute to the data "
+        "than to move data to compute. This constrains where new services should be deployed "
+        "and discourages naive cross-region joins on large tables.",
+    },
+
+    # --- performance ---
+    {
+        "id": "caching-patterns",
+        "title": "Caching Patterns",
+        "dimension_hint": "performance",
+        "tags": ["cache"],
+        "text": "Common caching patterns: cache-aside (app reads cache, falls back to DB and "
+        "populates cache on miss), read-through (cache itself loads from DB), write-through "
+        "(writes go to cache and DB synchronously), and write-behind (writes go to cache, "
+        "flushed to DB asynchronously, risking data loss on crash).",
+    },
+    {
+        "id": "cache-invalidation",
+        "title": "Cache Invalidation",
+        "dimension_hint": "performance",
+        "tags": ["cache"],
+        "text": "Cache invalidation strategies: TTL-based expiry (simple, bounded staleness), "
+        "explicit invalidation on write (fresher, more complex), and versioned/keyed cache "
+        "entries. Phil Karlton's quip stands: cache invalidation is one of the two hard "
+        "problems in computer science.",
+    },
+    {
+        "id": "cdn",
+        "title": "CDN (Content Delivery Network)",
+        "dimension_hint": "performance",
+        "tags": ["cache", "latency"],
+        "text": "A CDN caches static (and sometimes dynamic) content at edge nodes close to "
+        "users, cutting latency and offloading origin servers. Effective for read-heavy, "
+        "geographically distributed traffic; less useful for highly personalized or "
+        "write-heavy workloads.",
+    },
+    {
+        "id": "load-balancing",
+        "title": "Load Balancing Strategies",
+        "dimension_hint": "performance",
+        "tags": ["scale"],
+        "text": "Load balancer algorithms: round robin (simple, ignores server load), least "
+        "connections (routes to least busy server), and consistent hashing (routes by key, "
+        "useful for cache locality). L4 (transport-layer) balancers are faster; L7 "
+        "(application-layer) balancers can route on content/headers.",
+    },
+    {
+        "id": "database-indexing",
+        "title": "Database Indexing",
+        "dimension_hint": "performance",
+        "tags": ["database"],
+        "text": "Indexes speed up reads on indexed columns at the cost of slower writes "
+        "(index maintenance) and extra storage. B-tree indexes suit range queries; hash "
+        "indexes suit equality lookups. Over-indexing is a common performance anti-pattern.",
+    },
+    {
+        "id": "sharding",
+        "title": "Database Sharding",
+        "dimension_hint": "performance",
+        "tags": ["database", "scale"],
+        "text": "Sharding partitions data across multiple database instances by a shard key "
+        "(e.g. user_id hash) to scale writes beyond a single machine. Introduces complexity: "
+        "cross-shard joins and transactions become expensive or impossible, and shard-key "
+        "choice is hard to change later.",
+    },
+    {
+        "id": "read-replicas",
+        "title": "Read Replicas",
+        "dimension_hint": "performance",
+        "tags": ["database", "scale"],
+        "text": "Read replicas offload read traffic from a primary database via asynchronous "
+        "replication. Scales read-heavy workloads cheaply but introduces replication lag — "
+        "reads from a replica may be stale, which matters for read-your-own-write use cases.",
+    },
+    {
+        "id": "connection-pooling",
+        "title": "Connection Pooling",
+        "dimension_hint": "performance",
+        "tags": ["database"],
+        "text": "Opening a new database connection per request is expensive (TCP handshake, "
+        "auth). Connection pools reuse a fixed set of warm connections, dramatically reducing "
+        "per-request latency and preventing the database from being overwhelmed by connection "
+        "churn under load.",
+    },
+    {
+        "id": "async-processing",
+        "title": "Asynchronous Processing / Message Queues",
+        "dimension_hint": "performance",
+        "tags": ["queue", "latency"],
+        "text": "Offloading slow or non-critical work (emails, image processing, analytics) to "
+        "a message queue (e.g. SQS, RabbitMQ, Kafka) keeps the request path fast and lets "
+        "workers scale independently. Trades immediate consistency for eventual completion "
+        "and requires idempotent consumers.",
+    },
+    {
+        "id": "batching",
+        "title": "Batching Requests",
+        "dimension_hint": "performance",
+        "tags": ["throughput"],
+        "text": "Batching combines multiple small operations (DB writes, API calls) into one, "
+        "amortizing fixed overhead (network round trips, transaction commits) across many "
+        "items. Improves throughput at the cost of added latency per individual item and "
+        "more complex error handling for partial batch failures.",
+    },
+    {
+        "id": "n-plus-one",
+        "title": "N+1 Query Problem",
+        "dimension_hint": "performance",
+        "tags": ["database", "anti-pattern"],
+        "text": "The N+1 problem occurs when fetching a list of N items triggers N additional "
+        "queries (e.g. one per related object) instead of a single joined or batched query. "
+        "A classic performance anti-pattern in ORMs; fixed via eager loading or batched "
+        "fetching.",
+    },
+    {
+        "id": "latency-vs-throughput",
+        "title": "Latency vs Throughput",
+        "dimension_hint": "performance",
+        "tags": ["fundamentals"],
+        "text": "Latency is the time for a single operation to complete; throughput is "
+        "operations completed per unit time. They are related but distinct: batching and "
+        "queuing can improve throughput while increasing per-item latency. Optimize for the "
+        "one the product actually needs.",
+    },
+    {
+        "id": "percentile-latency",
+        "title": "Percentile Latency (p50/p99)",
+        "dimension_hint": "performance",
+        "tags": ["metrics"],
+        "text": "Average latency hides tail behavior. p50 (median) shows typical experience; "
+        "p99 shows the worst experience for 1 in 100 requests, which matters a lot at scale "
+        "since a large fraction of users will eventually hit it. Design and alert on tail "
+        "percentiles, not just averages.",
+    },
+    {
+        "id": "backpressure",
+        "title": "Backpressure",
+        "dimension_hint": "performance",
+        "tags": ["queue", "resilience"],
+        "text": "Backpressure is a mechanism for a slower downstream component to signal an "
+        "upstream producer to slow down (bounded queues, rejecting requests, load shedding) "
+        "rather than buffering unboundedly and eventually running out of memory or crashing.",
+    },
+    {
+        "id": "hot-partition",
+        "title": "Hot Partition / Hot Key",
+        "dimension_hint": "performance",
+        "tags": ["database", "scale"],
+        "text": "A hot partition occurs when a sharding or partitioning scheme routes "
+        "disproportionate traffic to one shard (e.g. a viral user ID, sequential IDs, or a "
+        "popular cache key), bottlenecking that node while others sit idle. Mitigated by "
+        "better key design, salting, or request coalescing.",
+    },
+
+    # --- security ---
+    {
+        "id": "authn-vs-authz",
+        "title": "Authentication vs Authorization",
+        "dimension_hint": "security",
+        "tags": ["auth"],
+        "text": "Authentication verifies who a user is (login, tokens, MFA). Authorization "
+        "determines what an authenticated user is allowed to do (RBAC, ABAC, ACLs). Conflating "
+        "the two is a common source of security bugs — always check both on every protected "
+        "action.",
+    },
+    {
+        "id": "rate-limiting",
+        "title": "Rate Limiting",
+        "dimension_hint": "security",
+        "tags": ["abuse-prevention"],
+        "text": "Rate limiting caps requests per identity (user, IP, API key) over a time "
+        "window to prevent abuse and protect downstream capacity. Common algorithms: token "
+        "bucket (allows bursts up to a cap), sliding window log/counter (smoother enforcement). "
+        "Apply at the edge (gateway) to protect the whole system.",
+    },
+    {
+        "id": "owasp-injection",
+        "title": "Injection Attacks (OWASP)",
+        "dimension_hint": "security",
+        "tags": ["owasp"],
+        "text": "Injection (SQL, NoSQL, command, LDAP) occurs when untrusted input is "
+        "concatenated into a query or command interpreter. Prevented by parameterized "
+        "queries/prepared statements and never building queries via string concatenation of "
+        "user input.",
+    },
+    {
+        "id": "owasp-broken-authn",
+        "title": "Broken Authentication (OWASP)",
+        "dimension_hint": "security",
+        "tags": ["owasp", "auth"],
+        "text": "Broken authentication covers weak password policies, missing brute-force "
+        "protection, session tokens exposed in URLs, and improper session invalidation on "
+        "logout. Mitigations: MFA, secure random session tokens, short-lived tokens with "
+        "refresh, and rate-limited login attempts.",
+    },
+    {
+        "id": "owasp-access-control",
+        "title": "Broken Access Control (OWASP)",
+        "dimension_hint": "security",
+        "tags": ["owasp", "authz"],
+        "text": "The most common OWASP Top 10 finding: failing to enforce authorization checks "
+        "server-side, allowing users to access or modify resources they shouldn't (e.g. IDOR — "
+        "insecure direct object reference, changing an ID in a URL to view another user's "
+        "data). Every resource access must be authorized server-side, never trust client-side "
+        "checks alone.",
+    },
+    {
+        "id": "encryption-transit-rest",
+        "title": "Encryption in Transit and at Rest",
+        "dimension_hint": "security",
+        "tags": ["encryption"],
+        "text": "Encryption in transit (TLS) protects data moving over the network from "
+        "eavesdropping/tampering. Encryption at rest (disk/DB-level encryption) protects "
+        "stored data if physical media or backups are compromised. Both are typically table "
+        "stakes, not optional add-ons, for systems handling any sensitive data.",
+    },
+    {
+        "id": "secrets-management",
+        "title": "Secrets Management",
+        "dimension_hint": "security",
+        "tags": ["secrets"],
+        "text": "API keys, database credentials, and signing keys must never be hardcoded or "
+        "committed to source control. Use a secrets manager or environment variables injected "
+        "at deploy time, rotate credentials periodically, and scope each credential to the "
+        "minimum required permissions.",
+    },
+    {
+        "id": "least-privilege",
+        "title": "Principle of Least Privilege",
+        "dimension_hint": "security",
+        "tags": ["authz"],
+        "text": "Every component, service account, and user should hold only the minimum "
+        "permissions needed to do its job. Reduces blast radius when credentials or a service "
+        "are compromised. Applies to database roles, cloud IAM policies, and inter-service "
+        "auth alike.",
+    },
+    {
+        "id": "input-validation",
+        "title": "Input Validation",
+        "dimension_hint": "security",
+        "tags": ["validation"],
+        "text": "All input crossing a trust boundary (user input, third-party API responses, "
+        "file uploads) must be validated: type, length, format, and allow-listed values where "
+        "possible. Validate on the server even if the client also validates, since client-side "
+        "checks can be bypassed.",
+    },
+    {
+        "id": "csrf-xss",
+        "title": "CSRF and XSS",
+        "dimension_hint": "security",
+        "tags": ["owasp", "web"],
+        "text": "XSS (Cross-Site Scripting) injects malicious scripts into pages viewed by "
+        "other users, mitigated by output encoding and Content-Security-Policy. CSRF "
+        "(Cross-Site Request Forgery) tricks a logged-in user's browser into making unwanted "
+        "requests, mitigated by CSRF tokens and SameSite cookies.",
+    },
+    {
+        "id": "ddos-mitigation",
+        "title": "DDoS Mitigation",
+        "dimension_hint": "security",
+        "tags": ["availability"],
+        "text": "Distributed denial-of-service defenses layer: CDN/edge absorption of "
+        "volumetric traffic, rate limiting and WAF rules for application-layer attacks, and "
+        "auto-scaling with circuit breakers so a traffic spike degrades gracefully rather than "
+        "cascading into a full outage.",
+    },
+    {
+        "id": "audit-logging",
+        "title": "Audit Logging",
+        "dimension_hint": "security",
+        "tags": ["compliance", "observability"],
+        "text": "Audit logs record who did what, when, immutably — distinct from debug logs. "
+        "Required for compliance (SOC2, HIPAA) and incident forensics. Should be tamper-evident "
+        "(write-once or hash-chained) and exclude sensitive payload data unless specifically "
+        "required and protected.",
+    },
+    {
+        "id": "supply-chain-security",
+        "title": "Supply Chain Security",
+        "dimension_hint": "security",
+        "tags": ["dependencies"],
+        "text": "Third-party dependencies (packages, base container images) are an attack "
+        "surface. Mitigations: pinned versions, automated vulnerability scanning (e.g. "
+        "Dependabot), minimal base images, and verifying package integrity/provenance before "
+        "adding a new dependency.",
+    },
+    {
+        "id": "data-minimization",
+        "title": "Data Minimization",
+        "dimension_hint": "security",
+        "tags": ["privacy"],
+        "text": "Collect and retain only the data actually needed for the feature to function. "
+        "Reduces breach impact, simplifies compliance (GDPR data minimization principle), and "
+        "lowers long-term storage/liability cost. A common design smell is storing PII "
+        "speculatively for possible future use.",
+    },
+    {
+        "id": "threat-modeling",
+        "title": "Threat Modeling (STRIDE)",
+        "dimension_hint": "security",
+        "tags": ["process"],
+        "text": "STRIDE is a threat-modeling mnemonic: Spoofing, Tampering, Repudiation, "
+        "Information disclosure, Denial of service, Elevation of privilege. Walking a design "
+        "through each category surfaces security gaps systematically rather than relying on "
+        "ad hoc review.",
+    },
+
+    # --- feedback / cross-cutting / general ---
+    {
+        "id": "single-point-of-failure",
+        "title": "Single Point of Failure",
+        "dimension_hint": "feedback",
+        "tags": ["reliability"],
+        "text": "A single point of failure (SPOF) is any component whose failure takes down "
+        "the whole system — a lone database instance, an unreplicated cache, a hardcoded "
+        "dependency on one region. Identifying and eliminating SPOFs (via redundancy, "
+        "failover) is a core critique to raise against any proposed architecture.",
+    },
+    {
+        "id": "idempotency",
+        "title": "Idempotency",
+        "dimension_hint": "feedback",
+        "tags": ["reliability", "api"],
+        "text": "An idempotent operation produces the same result no matter how many times "
+        "it's applied. Critical for safe retries in distributed systems (network timeouts mean "
+        "the client can't know if a request succeeded) — implemented via idempotency keys or "
+        "naturally idempotent operations (PUT with full state vs POST that always creates).",
+    },
+    {
+        "id": "circuit-breaker",
+        "title": "Circuit Breaker Pattern",
+        "dimension_hint": "feedback",
+        "tags": ["resilience"],
+        "text": "A circuit breaker stops calling a failing downstream service after a failure "
+        "threshold, failing fast instead of piling up timeouts, then periodically probes to "
+        "see if the dependency has recovered. Prevents cascading failure across a system of "
+        "services.",
+    },
+    {
+        "id": "graceful-degradation",
+        "title": "Graceful Degradation",
+        "dimension_hint": "feedback",
+        "tags": ["resilience"],
+        "text": "A system should degrade gracefully under partial failure — e.g. serving "
+        "stale cached data or a reduced feature set — rather than failing completely. A design "
+        "that has no fallback path when a non-critical dependency is down is a common "
+        "critique target.",
+    },
+    {
+        "id": "two-phase-commit",
+        "title": "Two-Phase Commit vs Saga",
+        "dimension_hint": "feedback",
+        "tags": ["transactions", "microservices"],
+        "text": "Two-phase commit (2PC) gives atomic distributed transactions but blocks on a "
+        "coordinator and doesn't scale well. The Saga pattern instead breaks a distributed "
+        "transaction into a sequence of local transactions with compensating actions on "
+        "failure — better availability, more application complexity to get right.",
+    },
+    {
+        "id": "eventual-consistency-ux",
+        "title": "Eventual Consistency and UX",
+        "dimension_hint": "feedback",
+        "tags": ["consistency", "ux"],
+        "text": "Choosing eventual consistency for performance/availability has real UX "
+        "consequences (a user's own write may not appear immediately). A design that adopts "
+        "eventual consistency should explicitly address read-your-own-writes expectations for "
+        "the affected user flows, or accept and document the tradeoff.",
+    },
+    {
+        "id": "monolith-vs-microservices",
+        "title": "Monolith vs Microservices",
+        "dimension_hint": "feedback",
+        "tags": ["architecture"],
+        "text": "Microservices offer independent scaling/deployment but add network latency, "
+        "distributed-transaction complexity, and operational overhead best justified by team "
+        "scale and genuinely independent domains. A modular monolith often serves small teams "
+        "and early-stage products better, deferring the split until boundaries are proven.",
+    },
+    {
+        "id": "api-versioning",
+        "title": "API Versioning Strategies",
+        "dimension_hint": "feedback",
+        "tags": ["api"],
+        "text": "API versioning approaches: URI versioning (/v1/...), header-based versioning, "
+        "and additive-only evolution without explicit versions. URI versioning is simplest to "
+        "reason about and cache; header-based is cleaner but harder to debug and test "
+        "manually.",
+    },
+    {
+        "id": "observability-pillars",
+        "title": "Observability: Logs, Metrics, Traces",
+        "dimension_hint": "feedback",
+        "tags": ["observability"],
+        "text": "The three observability pillars: logs (discrete events, good for detail), "
+        "metrics (aggregated numeric time series, good for alerting/trends), and traces "
+        "(request flow across services, good for diagnosing latency in distributed calls). A "
+        "design proposal missing all three lacks a story for diagnosing production issues.",
+    },
+    {
+        "id": "feature-flags",
+        "title": "Feature Flags",
+        "dimension_hint": "feedback",
+        "tags": ["deployment"],
+        "text": "Feature flags decouple deployment from release, enabling gradual rollout, "
+        "kill switches for bad releases, and A/B testing without a redeploy. A useful mitigation "
+        "to suggest when a design carries deployment risk.",
+    },
+    {
+        "id": "polling-vs-webhooks-vs-streaming",
+        "title": "Polling vs Webhooks vs Streaming",
+        "dimension_hint": "feedback",
+        "tags": ["realtime"],
+        "text": "Polling is simple but wastes resources and adds latency proportional to poll "
+        "interval. Webhooks push events on occurrence, efficient but require the receiver to "
+        "expose a reachable endpoint and handle retries/dedup. Persistent streaming (SSE, "
+        "WebSockets) gives the lowest latency but adds connection-management complexity at "
+        "scale.",
+    },
+    {
+        "id": "consistent-hashing",
+        "title": "Consistent Hashing",
+        "dimension_hint": "feedback",
+        "tags": ["distributed-systems", "scale"],
+        "text": "Consistent hashing maps both nodes and keys onto a hash ring so that adding "
+        "or removing a node only remaps a small fraction of keys (roughly 1/N), unlike naive "
+        "modulo hashing which remaps almost everything. Foundational for scalable sharding and "
+        "load balancing.",
+    },
+    {
+        "id": "cqrs",
+        "title": "CQRS",
+        "dimension_hint": "feedback",
+        "tags": ["architecture"],
+        "text": "Command Query Responsibility Segregation splits the write model (commands) "
+        "from the read model (queries), allowing each to be optimized and scaled "
+        "independently — often paired with event sourcing. Adds synchronization complexity "
+        "between the two models and is usually overkill outside genuinely read/write-asymmetric "
+        "domains.",
+    },
+    {
+        "id": "outbox-pattern",
+        "title": "Transactional Outbox Pattern",
+        "dimension_hint": "feedback",
+        "tags": ["messaging", "consistency"],
+        "text": "The outbox pattern solves the dual-write problem (writing to a DB and "
+        "publishing an event must both happen or neither) by writing the event to an outbox "
+        "table in the same DB transaction, then a separate relay process publishes it to the "
+        "message broker — avoiding lost or duplicate events from a naive two-system write.",
+    },
+]
