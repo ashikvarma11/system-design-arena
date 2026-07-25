@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import sessions
+from app.api.routes import debate, sessions
 from app.config import get_settings
 from app.persistence.db import init_db
 
@@ -18,6 +18,7 @@ app.add_middleware(
 )
 
 app.include_router(sessions.router)
+app.include_router(debate.router)
 
 
 @app.on_event("startup")

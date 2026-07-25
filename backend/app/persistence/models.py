@@ -28,7 +28,9 @@ class SessionRecord(Base):
     rounds_planned: Mapped[int] = mapped_column(Integer, default=3)
     title: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
-    turns: Mapped[list["TurnRecord"]] = relationship(back_populates="session", cascade="all, delete-orphan")
+    turns: Mapped[list["TurnRecord"]] = relationship(
+        back_populates="session", cascade="all, delete-orphan", order_by="TurnRecord.created_at"
+    )
     agreed_plan: Mapped["AgreedPlanRecord | None"] = relationship(
         back_populates="session", cascade="all, delete-orphan", uselist=False
     )

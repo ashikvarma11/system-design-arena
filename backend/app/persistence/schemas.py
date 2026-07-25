@@ -33,3 +33,38 @@ class SessionListItem(BaseModel):
     created_at: datetime
     status: str
     title: str | None
+
+
+class TurnResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    session_id: str
+    round_number: int
+    persona: str
+    dimension: str | None
+    content: str
+    critiques_turn_id: str | None
+    retrieved_concept_ids: list | None
+    created_at: datetime
+
+
+class AgreedPlan(BaseModel):
+    decision_summary: str
+    constraints_addressed: list[str]
+    performance_considerations: list[str]
+    security_considerations: list[str]
+    open_risks: list[str]
+
+
+class AgreedPlanResponse(AgreedPlan):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    session_id: str
+    created_at: datetime
+
+
+class SessionDetailResponse(SessionResponse):
+    turns: list[TurnResponse] = []
+    agreed_plan: AgreedPlanResponse | None = None

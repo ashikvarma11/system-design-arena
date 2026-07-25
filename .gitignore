@@ -24,3 +24,7 @@ qdrant_storage/
 # OS
 .DS_Store
 Thumbs.db
+
+# local progress notes and plan (not for version control)
+PROGRESS.md
+plan.md
