@@ -9,6 +9,15 @@ const PERSONA_LABELS: Record<string, string> = {
   moderator: 'Moderator',
 };
 
+const PERSONA_INITIALS: Record<string, string> = {
+  proposer: 'PR',
+  constraints: 'CN',
+  performance: 'PF',
+  security: 'SC',
+  critic: 'CR',
+  moderator: 'MD',
+};
+
 @Component({
   selector: 'app-persona-badge',
   standalone: true,
@@ -18,4 +27,12 @@ const PERSONA_LABELS: Record<string, string> = {
 export class PersonaBadgeComponent {
   persona = input.required<string>();
   label = computed(() => PERSONA_LABELS[this.persona()] ?? this.persona());
+}
+
+export function personaInitials(persona: string): string {
+  return PERSONA_INITIALS[persona] ?? persona.slice(0, 2).toUpperCase();
+}
+
+export function personaLabel(persona: string): string {
+  return PERSONA_LABELS[persona] ?? persona;
 }

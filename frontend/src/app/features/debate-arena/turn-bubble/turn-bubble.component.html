@@ -1,12 +1,22 @@
-<div class="turn-bubble" [class]="'turn-bubble--' + turn().persona">
-  <div class="turn-bubble__header">
-    <app-persona-badge [persona]="turn().persona" />
-    <span class="turn-bubble__round">Round {{ turn().round_number }}</span>
-    @if (turn().critiques_turn_id) {
-      <span class="turn-bubble__rebut">
-        ⚔ rebutting {{ rebuttalTargetPersona() ?? 'a prior turn' }}
-      </span>
-    }
+@if (side() === 'center') {
+  <div class="turn-row turn-row--center">
+    <div class="turn-system">
+      <span class="turn-system__label">{{ label() }} · Round {{ turn().round_number }}</span>
+      <p class="turn-system__text">{{ turn().content }}</p>
+    </div>
   </div>
-  <p class="turn-bubble__content">{{ turn().content }}</p>
-</div>
+} @else {
+  <div class="turn-row" [class]="'turn-row--' + side()">
+    <span class="turn-avatar" [class]="'turn-avatar--' + turn().persona">{{ initials() }}</span>
+    <div class="turn-bubble" [class]="'turn-bubble--' + turn().persona">
+      <div class="turn-bubble__meta">
+        <span class="turn-bubble__name" [class]="'turn-bubble__name--' + turn().persona">{{ label() }}</span>
+        @if (turn().critiques_turn_id) {
+          <span class="turn-bubble__rebut">⚔ rebuts {{ rebuttalTargetPersona() ?? 'a prior turn' }}</span>
+        }
+        <span class="turn-bubble__round">Round {{ turn().round_number }}</span>
+      </div>
+      <p class="turn-bubble__content">{{ turn().content }}</p>
+    </div>
+  </div>
+}
