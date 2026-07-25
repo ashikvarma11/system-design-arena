@@ -4,6 +4,10 @@
     <button type="button" (click)="download()">Download plan.md</button>
   </div>
 
+  <p class="plan-card__convergence">
+    {{ plan().converged ? 'Team reached full agreement.' : 'Round limit reached before full agreement.' }}
+  </p>
+
   <p class="plan-card__summary">{{ plan().decision_summary }}</p>
 
   @if (plan().constraints_addressed.length) {

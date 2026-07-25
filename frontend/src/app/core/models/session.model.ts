@@ -32,6 +32,7 @@ export interface TurnResponse {
   dimension: string | null;
   content: string;
   critiques_turn_id: string | null;
+  agreement_status: string | null;
   retrieved_concept_ids: string[] | null;
   created_at: string;
 }
@@ -42,6 +43,7 @@ export interface AgreedPlan {
   performance_considerations: string[];
   security_considerations: string[];
   open_risks: string[];
+  converged: boolean;
 }
 
 export interface AgreedPlanResponse extends AgreedPlan {

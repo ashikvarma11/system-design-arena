@@ -11,7 +11,10 @@ class ProblemBrief(BaseModel):
 
 class SessionCreateRequest(BaseModel):
     text: str
-    rounds_planned: int = Field(default=3, ge=2, le=5)
+    rounds_planned: int = Field(
+        default=3, ge=2, le=5,
+        description="Maximum number of debate rounds. The debate may converge and stop earlier.",
+    )
 
 
 class SessionResponse(BaseModel):
@@ -46,6 +49,7 @@ class TurnResponse(BaseModel):
     dimension: str | None
     content: str
     critiques_turn_id: str | None
+    agreement_status: str | None
     retrieved_concept_ids: list | None
     created_at: datetime
 
@@ -56,6 +60,7 @@ class AgreedPlan(BaseModel):
     performance_considerations: list[str]
     security_considerations: list[str]
     open_risks: list[str]
+    converged: bool
 
 
 class AgreedPlanResponse(AgreedPlan):

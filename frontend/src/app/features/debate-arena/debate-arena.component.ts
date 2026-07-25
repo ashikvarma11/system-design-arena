@@ -128,6 +128,7 @@ function toTurnBubbleData(turn: {
   dimension: string | null;
   content: string;
   critiques_turn_id: string | null;
+  agreement_status: string | null;
 }): TurnBubbleData {
   return {
     id: turn.id,
@@ -136,5 +137,6 @@ function toTurnBubbleData(turn: {
     dimension: turn.dimension,
     content: turn.content,
     critiques_turn_id: turn.critiques_turn_id,
+    agreement_status: turn.agreement_status,
   };
 }

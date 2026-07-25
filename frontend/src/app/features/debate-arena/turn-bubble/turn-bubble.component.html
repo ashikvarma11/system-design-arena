@@ -14,6 +14,9 @@
         @if (turn().critiques_turn_id) {
           <span class="turn-bubble__rebut">⚔ rebuts {{ rebuttalTargetPersona() ?? 'a prior turn' }}</span>
         }
+        @if (turn().agreement_status === 'agree') {
+          <span class="turn-bubble__agree">✓ agrees</span>
+        }
         <span class="turn-bubble__round">Round {{ turn().round_number }}</span>
       </div>
       <p class="turn-bubble__content">{{ turn().content }}</p>

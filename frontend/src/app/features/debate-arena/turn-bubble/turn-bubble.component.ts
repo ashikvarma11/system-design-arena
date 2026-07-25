@@ -9,6 +9,7 @@ export interface TurnBubbleData {
   dimension: string | null;
   content: string;
   critiques_turn_id: string | null;
+  agreement_status: string | null;
 }
 
 const RIGHT_SIDE_PERSONAS = new Set(['security', 'critic']);

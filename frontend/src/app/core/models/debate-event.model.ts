@@ -12,6 +12,7 @@ export interface TurnEndData {
   dimension: string | null;
   content: string;
   critiques_turn_id: string | null;
+  agreement_status: string | null;
 }
 
 export type DoneData = { session_id: string };

@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.persistence.db import Base
@@ -46,6 +46,7 @@ class TurnRecord(Base):
     dimension: Mapped[str | None] = mapped_column(String(64), nullable=True)
     content: Mapped[str] = mapped_column(Text)
     critiques_turn_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    agreement_status: Mapped[str | None] = mapped_column(String(16), nullable=True)
     retrieved_concept_ids: Mapped[list | None] = mapped_column(JSON, nullable=True)
     token_usage_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
@@ -63,6 +64,7 @@ class AgreedPlanRecord(Base):
     performance_considerations: Mapped[list | None] = mapped_column(JSON, nullable=True)
     security_considerations: Mapped[list | None] = mapped_column(JSON, nullable=True)
     open_risks: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    converged: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     session: Mapped["SessionRecord"] = relationship(back_populates="agreed_plan")
