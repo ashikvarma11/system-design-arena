@@ -2,7 +2,15 @@ import uuid
 from functools import lru_cache
 
 from qdrant_client import QdrantClient
-from qdrant_client.models import Distance, FieldCondition, Filter, MatchValue, PointStruct, VectorParams
+from qdrant_client.models import (
+    Distance,
+    FieldCondition,
+    Filter,
+    MatchValue,
+    PayloadSchemaType,
+    PointStruct,
+    VectorParams,
+)
 
 from app.config import get_settings
 from app.core.embeddings import EMBEDDING_DIM, embed_text
@@ -18,14 +26,32 @@ def get_qdrant_client() -> QdrantClient:
 
 
 def ensure_collections() -> None:
+    """Creates both collections and the payload indexes their filters rely on.
+    Local self-hosted Qdrant tolerates filtering on unindexed fields; Qdrant
+    Cloud does not (400s with "Index required but not found"), so the indexes
+    must be created explicitly rather than relying on filter-time behavior."""
     client = get_qdrant_client()
     existing = {c.name for c in client.get_collections().collections}
-    for name in (CONCEPTS_COLLECTION, DEBATE_TURNS_COLLECTION):
-        if name not in existing:
-            client.create_collection(
-                collection_name=name,
-                vectors_config=VectorParams(size=EMBEDDING_DIM, distance=Distance.COSINE),
-            )
+    if CONCEPTS_COLLECTION not in existing:
+        client.create_collection(
+            collection_name=CONCEPTS_COLLECTION,
+            vectors_config=VectorParams(size=EMBEDDING_DIM, distance=Distance.COSINE),
+        )
+        client.create_payload_index(
+            collection_name=CONCEPTS_COLLECTION,
+            field_name="dimension_hint",
+            field_schema=PayloadSchemaType.KEYWORD,
+        )
+    if DEBATE_TURNS_COLLECTION not in existing:
+        client.create_collection(
+            collection_name=DEBATE_TURNS_COLLECTION,
+            vectors_config=VectorParams(size=EMBEDDING_DIM, distance=Distance.COSINE),
+        )
+        client.create_payload_index(
+            collection_name=DEBATE_TURNS_COLLECTION,
+            field_name="session_id",
+            field_schema=PayloadSchemaType.KEYWORD,
+        )
 
 
 def upsert_concept(concept_id: str, text: str, payload: dict) -> None:
