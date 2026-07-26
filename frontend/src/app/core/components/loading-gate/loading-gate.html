@@ -1,0 +1,41 @@
+<div class="scene">
+  <svg viewBox="0 0 480 300" class="diagram" role="img" aria-label="System diagram animating while the backend wakes up">
+    <line #lineClientLb x1="70" y1="150" x2="190" y2="150" class="link" />
+    <line #lineLbServer1 x1="230" y1="130" x2="330" y2="80" class="link" />
+    <line #lineLbServer2 x1="230" y1="170" x2="330" y2="220" class="link" />
+    <line #lineServer1Db x1="370" y1="80" x2="410" y2="150" class="link" />
+    <line #lineServer2Db x1="370" y1="220" x2="410" y2="150" class="link" />
+
+    <g #nodeClient class="node">
+      <rect x="20" y="125" width="50" height="50" rx="8" />
+      <text x="45" y="154" text-anchor="middle">C</text>
+    </g>
+
+    <g #nodeLb class="node">
+      <rect x="190" y="125" width="50" height="50" rx="8" />
+      <text x="215" y="154" text-anchor="middle">LB</text>
+    </g>
+
+    <g #nodeServer1 class="node">
+      <rect x="330" y="55" width="50" height="50" rx="8" />
+      <text x="355" y="84" text-anchor="middle">S1</text>
+    </g>
+
+    <g #nodeServer2 class="node">
+      <rect x="330" y="195" width="50" height="50" rx="8" />
+      <text x="355" y="224" text-anchor="middle">S2</text>
+    </g>
+
+    <g #nodeDb class="node node--db">
+      <rect x="410" y="125" width="50" height="50" rx="8" />
+      <text x="435" y="154" text-anchor="middle">DB</text>
+    </g>
+  </svg>
+
+  <p class="status-line">{{ statusText() }}</p>
+  <p class="status-hint">{{ hintText() }}</p>
+
+  @if (timedOut()) {
+    <button type="button" class="retry-btn" (click)="retry()">Retry</button>
+  }
+</div>

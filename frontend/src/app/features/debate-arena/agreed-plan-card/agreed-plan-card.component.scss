@@ -1,8 +1,8 @@
 .plan-card {
-  border: 2px solid #37474f;
+  border: 2px solid var(--moderator);
   border-radius: 12px;
   padding: 1.5rem;
-  background: #f7f9fa;
+  background: var(--surface);
 
   &__header {
     display: flex;
@@ -13,15 +13,15 @@
     h2 { margin: 0; }
 
     button {
-      background: #37474f;
-      color: #fff;
+      background: var(--moderator);
+      color: var(--on-brand);
       border: none;
       border-radius: 6px;
       padding: 0.5rem 1rem;
       cursor: pointer;
       font-weight: 600;
 
-      &:hover { background: #263238; }
+      &:hover { background: var(--ink); }
     }
   }
 
@@ -31,8 +31,8 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.03em;
-    color: #455a64;
-    background: #e8edf0;
+    color: var(--ink-muted-2);
+    background: var(--border-soft);
     padding: 0.2rem 0.6rem;
     border-radius: 999px;
     margin: 0 0 0.75rem;
@@ -51,7 +51,7 @@
       font-size: 0.95rem;
       text-transform: uppercase;
       letter-spacing: 0.03em;
-      color: #455a64;
+      color: var(--ink-muted-2);
     }
 
     ul {

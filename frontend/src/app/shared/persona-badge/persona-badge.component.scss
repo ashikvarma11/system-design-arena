@@ -5,12 +5,12 @@
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.02em;
-  color: #fff;
+  color: var(--on-brand);
 
-  &--proposer { background: #4a5cff; }
-  &--constraints { background: #b8860b; }
-  &--performance { background: #0f9d58; }
-  &--security { background: #d33; }
-  &--critic { background: #8e24aa; }
-  &--moderator { background: #37474f; }
+  &--proposer { background: var(--proposer); }
+  &--constraints { background: var(--constraints); }
+  &--performance { background: var(--performance); }
+  &--security { background: var(--security); }
+  &--critic { background: var(--critic); }
+  &--moderator { background: var(--moderator); }
 }

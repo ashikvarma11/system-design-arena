@@ -1,12 +1,12 @@
 .related-sessions {
   margin-top: 1.5rem;
   padding-top: 1rem;
-  border-top: 1px solid #e0e4e8;
+  border-top: 1px solid var(--border-soft);
 
   h3 {
     margin: 0 0 0.75rem;
     font-size: 0.95rem;
-    color: #607d8b;
+    color: var(--ink-muted);
   }
 
   ul {
@@ -22,7 +22,7 @@
     a {
       font-weight: 600;
       text-decoration: none;
-      color: #4a5cff;
+      color: var(--brand);
 
       &:hover { text-decoration: underline; }
     }
@@ -35,6 +35,6 @@
   .snippet {
     margin: 0.25rem 0 0;
     font-size: 0.85rem;
-    color: #607d8b;
+    color: var(--ink-muted);
   }
 }

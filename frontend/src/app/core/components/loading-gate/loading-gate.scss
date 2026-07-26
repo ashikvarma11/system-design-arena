@@ -1,0 +1,73 @@
+:host {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #10161c;
+}
+
+.scene {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px;
+}
+
+.diagram {
+  width: min(90vw, 480px);
+  height: auto;
+}
+
+.link {
+  stroke: #3a4a5c;
+  stroke-width: 2;
+  opacity: 0.35;
+}
+
+.node rect {
+  fill: #1b2531;
+  stroke: #4a90e2;
+  stroke-width: 1.5;
+}
+
+.node text {
+  fill: #cfe0f2;
+  font-size: 15px;
+  font-family: inherit;
+  font-weight: 600;
+}
+
+.node--db rect {
+  stroke: #57c785;
+}
+
+.status-line {
+  margin: 16px 0 0;
+  color: #e8f0f8;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.status-hint {
+  margin: 4px 0 0;
+  color: #8195a8;
+  font-size: 13px;
+}
+
+.retry-btn {
+  margin-top: 16px;
+  padding: 8px 20px;
+  border-radius: 6px;
+  border: 1px solid #4a90e2;
+  background: transparent;
+  color: #cfe0f2;
+  font-size: 14px;
+  cursor: pointer;
+
+  &:hover {
+    background: #1b2531;
+  }
+}

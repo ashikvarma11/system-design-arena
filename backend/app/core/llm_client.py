@@ -1,5 +1,6 @@
 import logging
 
+import httpx
 from cerebras.cloud.sdk import Cerebras
 from google import genai
 from google.genai import types as genai_types
@@ -9,6 +10,8 @@ from app.config import get_settings
 
 logger = logging.getLogger(__name__)
 
+_OPENROUTER_MODEL = "deepseek/deepseek-chat-v3.1:free"
+_OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
 _GROQ_MODEL = "llama-3.3-70b-versatile"
 _CEREBRAS_MODEL = "llama-3.3-70b"
 _GEMINI_MODEL = "gemini-2.0-flash"
@@ -21,13 +24,15 @@ class ProviderUnavailable(Exception):
 class LLMClient:
     """Provider-agnostic chat-completion wrapper.
 
-    Tries Groq -> Cerebras -> Gemini in order, falling back to the next
-    provider whenever one is unconfigured, rate-limited, or errors out.
-    Persona code never touches provider specifics.
+    Tries OpenRouter -> Groq -> Cerebras -> Gemini in order, falling back to
+    the next provider whenever one is unconfigured, rate-limited, or errors
+    out. Persona code never touches provider specifics.
     """
 
     def __init__(self) -> None:
         settings = get_settings()
+        self._openrouter_key = settings.openrouter_api_key or None
+        self._http = httpx.Client(timeout=60.0)
         self._groq = Groq(api_key=settings.groq_api_key) if settings.groq_api_key else None
         self._cerebras = (
             Cerebras(api_key=settings.cerebras_api_key) if settings.cerebras_api_key else None
@@ -38,6 +43,7 @@ class LLMClient:
 
     def complete(self, system_prompt: str, user_prompt: str, *, json_mode: bool = False) -> str:
         providers = (
+            ("openrouter", self._complete_openrouter),
             ("groq", self._complete_groq),
             ("cerebras", self._complete_cerebras),
             ("gemini", self._complete_gemini),
@@ -54,6 +60,26 @@ class LLMClient:
                 last_error = exc
                 continue
         raise RuntimeError(f"All LLM providers unavailable: {last_error}")
+
+    def _complete_openrouter(self, system_prompt: str, user_prompt: str, *, json_mode: bool) -> str:
+        if self._openrouter_key is None:
+            raise ProviderUnavailable("OPENROUTER_API_KEY not configured")
+        response = self._http.post(
+            _OPENROUTER_BASE_URL,
+            headers={"Authorization": f"Bearer {self._openrouter_key}"},
+            json={
+                "model": _OPENROUTER_MODEL,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                "temperature": 0.3,
+                "response_format": {"type": "json_object"} if json_mode else None,
+            },
+        )
+        response.raise_for_status()
+        data = response.json()
+        return data["choices"][0]["message"]["content"] or ""
 
     def _complete_groq(self, system_prompt: str, user_prompt: str, *, json_mode: bool) -> str:
         if self._groq is None:

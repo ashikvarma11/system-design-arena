@@ -6,13 +6,13 @@
   .back-link {
     display: inline-block;
     margin-bottom: 1rem;
-    color: #607d8b;
+    color: var(--ink-muted);
     text-decoration: none;
 
     &:hover { text-decoration: underline; }
   }
 
-  .error { color: #d33; }
+  .error { color: var(--danger); }
 
   app-agreed-plan-card {
     display: block;

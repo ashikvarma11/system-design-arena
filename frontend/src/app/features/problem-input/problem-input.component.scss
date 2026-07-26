@@ -8,7 +8,7 @@
   }
 
   .subtitle {
-    color: #546e7a;
+    color: var(--ink-muted-2);
     margin-bottom: 1.5rem;
   }
 
@@ -18,28 +18,28 @@
     font-family: inherit;
     font-size: 1rem;
     padding: 0.85rem;
-    border: 1px solid #cfd8dc;
+    border: 1px solid var(--border);
     border-radius: 8px;
     resize: vertical;
   }
 
   .dropzone {
     margin-top: 1rem;
-    border: 2px dashed #cfd8dc;
+    border: 2px dashed var(--border);
     border-radius: 8px;
     padding: 1rem;
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    color: #607d8b;
+    color: var(--ink-muted);
 
     &--active {
-      border-color: #4a5cff;
-      background: #f2f4ff;
+      border-color: var(--brand);
+      background: var(--brand-tint);
     }
 
     .file-label {
-      color: #4a5cff;
+      color: var(--brand);
       cursor: pointer;
       font-weight: 600;
 
@@ -52,7 +52,7 @@
       margin-left: auto;
       border: none;
       background: none;
-      color: #d33;
+      color: var(--danger);
       cursor: pointer;
     }
   }
@@ -64,19 +64,19 @@
     gap: 0.75rem;
 
     label {
-      color: #546e7a;
+      color: var(--ink-muted-2);
       font-size: 0.9rem;
       white-space: nowrap;
     }
 
     input[type='range'] {
       flex: 1;
-      accent-color: #4a5cff;
+      accent-color: var(--brand);
     }
   }
 
   .error {
-    color: #d33;
+    color: var(--danger);
     margin-top: 0.75rem;
   }
 
@@ -86,13 +86,13 @@
     padding: 0.85rem;
     font-size: 1rem;
     font-weight: 600;
-    color: #fff;
-    background: #4a5cff;
+    color: var(--on-brand);
+    background: var(--brand);
     border: none;
     border-radius: 8px;
     cursor: pointer;
 
-    &:hover:not(:disabled) { background: #3a49d6; }
+    &:hover:not(:disabled) { background: var(--brand-hover); }
     &:disabled { opacity: 0.6; cursor: not-allowed; }
   }
 
@@ -100,7 +100,7 @@
     display: block;
     text-align: center;
     margin-top: 1rem;
-    color: #607d8b;
+    color: var(--ink-muted);
     text-decoration: none;
 
     &:hover { text-decoration: underline; }
